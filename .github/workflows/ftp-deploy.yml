@@ -19,9 +19,10 @@ jobs:
           chmod 600 ~/.ssh/id_ecdsa
           ssh-keyscan -H ${{ secrets.FTP_SERVER }} >> ~/.ssh/known_hosts
 
-      - name: Deploy via SFTP
+      - name: Deploy via rsync
         run: |
-          sftp -i ~/.ssh/id_ecdsa -o StrictHostKeyChecking=no ${{ secrets.FTP_USERNAME }}@${{ secrets.FTP_SERVER }} << 'EOF'
-          cd /home/mypleasure/www/test
-          put index.html
-          EOF
+          rsync -avz --delete \
+            --exclude='.git' \
+            --exclude='.github' \
+            -e "ssh -i ~/.ssh/id_ecdsa -o StrictHostKeyChecking=no" \
+            ./ ${{ secrets.FTP_USERNAME }}@${{ secrets.FTP_SERVER }}:/home/mypleasure/www/test/
